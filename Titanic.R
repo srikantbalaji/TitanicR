@@ -7,7 +7,7 @@ library(corrplot)
 library(ggfortify)
 library(ggcorrplot)
 library(stringr)
-
+library(randomForest)
 #Setting Working Directory 
 setwd("~/Kaggle/Titanic")
 
@@ -554,4 +554,19 @@ predictTest <- predict(fit,type="response",newdata=test)
 test$Survived <- as.numeric(predictTest >= 0.5)
 Predictions <- data.frame(test[c("PassengerId","Survived")])
 table(test$Survived)
-write.csv(file = "TitanicPred", x = Predictions)
+write.csv(file = "TitanicPred.csv", x = Predictions)
+
+########################################################################################################
+X_test <- test
+X_test$Survived<-NULL
+
+titanic_rf <- randomForest(X_train,as.factor(Y_train),ntree=100,importance=TRUE)
+str(titanic_rf)
+submissionRF <- data.frame(PassengerId = test$PassengerId)
+
+submissionRF$Survived <- predict(titanic_rf, X_test)
+confusion_matrix<-table(submissionRF$Survived, test$Survived)
+confusion_matrix
+
+write.csv(file = "TitanicPred_RF.csv", x = submissionRF)
+View(submissionRF)
